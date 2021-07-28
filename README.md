@@ -1,1 +1,1 @@
-Simple desktop reminder for Google Keep. Opens the browser withdue  tasks regular, so I don't forget them.
+Simple desktop reminder for Google Keep. Opens the browser with due  tasks regularly, so I don't forget them.
