@@ -65,35 +65,49 @@ def check():
               formatted = u'{0} -> {1}'.format(title, time)
               due.append(formatted)
 
-        if due:
-          print (due)
-
-          if not list(set(due) - set(lastnotif)):
-            print ("no new tasks")
-          else:
-            print ("notifying user")
-            # origin needed, otherwise we get a 404 error
-            subprocess.call(["C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe", "https://tasks.google.com/embed/?origin=https://calendar.google.com&fullWidth=1"])
-
-            global lastnotif
-            lastnotif = due
+        return due
 
 
-
-lastnotif = []
-
-idletime = 60
-checkperiod = 600
-
-while True:
+      
+def wait_for_idle():
   while True:
     idle = subprocess.check_output("powershell.exe -File idle.ps1").strip()
-    print ("wating for idle")
+    print ("wating for idle %s seconds, currently %s seconds" % (idletime, idle))
     if int(idle) >= idletime:
       break
     
     time.sleep(idletime)
 
-  check()
+
+
+lastnotif = []
+lastnotiftime = 0
+
+idletime = 60
+checkperiod = 600
+notifperiod = 3600
+
+while True:
+  due = check()
+
+  if due:
+    print (due)
+
+    duediff = list(set(due) - set(lastnotif))
+    timediff = int(time.time()) - lastnotiftime
+    
+    if duediff or timediff > notifperiod:
+      print ("notifying user")
+      wait_for_idle()
+
+      # origin needed, otherwise we get a 404 error
+      subprocess.call(["C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe", "https://tasks.google.com/embed/?origin=https://calendar.google.com&fullWidth=1"])
+
+      lastnotif = due
+      lastnotiftime = time.time()
+
+    else:
+      print ("not enough time elapsed since last notif: %s" % timediff)
+
 
   time.sleep(checkperiod)
